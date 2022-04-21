@@ -10,7 +10,7 @@ import SwiftUI
 struct ContentView: View {
     
     @ObservedObject var networkManager = NetworkManager()
-    
+    let url = "http://hn.algolia.com/api/v1/search?tags=front_page"
     var body: some View {
         NavigationView {
             List(networkManager.posts) { post in
@@ -26,7 +26,11 @@ struct ContentView: View {
         }
         .navigationViewStyle(StackNavigationViewStyle())
         .onAppear {
-            self.networkManager.fetchData()
+            do {
+                try self.networkManager.fetchData(url)
+            } catch {
+                print(error)
+            }
         }
     }
 }

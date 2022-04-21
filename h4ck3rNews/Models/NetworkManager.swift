@@ -6,30 +6,38 @@
 //
 
 import Foundation
+import SwiftUI
 
 class NetworkManager: ObservableObject {
     
     @Published var posts = [Post]()
     
-    func fetchData() {
-        if let url = URL(string: "http://hn.algolia.com/api/v1/search?tags=front_page") {
-            let session = URLSession(configuration: .default)
-            let task = session.dataTask(with: url) { data, response, error in
-                if error == nil {
-                    let decoder = JSONDecoder()
-                    if let safeData = data {
-                        do {
-                            let results = try decoder.decode(Results.self, from: safeData)
-                            DispatchQueue.main.async {
-                                self.posts = results.hits
-                            }
-                        } catch {
-                            print(error)
+    func fetchData(_ urlString: String) throws {
+        
+        guard let url = URL(string: urlString) else {
+            throw NetworkManagerError.urlIsEmpty
+        }
+        
+        let session = URLSession(configuration: .default)
+        let task = session.dataTask(with: url) { data, response, error in
+            if error == nil {
+                let decoder = JSONDecoder()
+                if let safeData = data {
+                    do {
+                        let results = try decoder.decode(Results.self, from: safeData)
+                        DispatchQueue.main.async {
+                            self.posts = results.hits
                         }
+                    } catch {
+                        print(error)
                     }
                 }
             }
-            task.resume()
         }
+        task.resume()
+    }
+    
+    enum NetworkManagerError: Error {
+        case urlIsEmpty
     }
 }
